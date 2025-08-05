@@ -13,7 +13,7 @@ import TableRow from "@tiptap/extension-table-row"
 import TableCell from "@tiptap/extension-table-cell"
 import TableHeader from "@tiptap/extension-table-header"
 import CodeBlock from "@tiptap/extension-code-block"
-import { SlashCommand } from "./slash-commands"
+
 import { 
   Bold, 
   Italic, 
@@ -80,7 +80,6 @@ export function FullPageEditor({ task, isOpen, onClose, mode = "edit" }: FullPag
       Placeholder.configure({
         placeholder: "Type '/' for commands, or just start writing...",
       }),
-      SlashCommand,
       Image.configure({
         HTMLAttributes: {
           class: "max-w-full rounded-lg",
