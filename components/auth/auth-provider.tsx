@@ -73,10 +73,13 @@ function AuthForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState("")
+  const [messageType, setMessageType] = useState<"success" | "error">("success")
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setMessage("")
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -84,12 +87,15 @@ function AuthForm() {
     })
 
     if (error) {
-      alert(error.message)
+      setMessage(error.message)
+      setMessageType("error")
     } else {
       if (isUsingMockData) {
-        alert("Demo account created! You can now use the app.")
+        setMessage("Demo account created! You can now use the app.")
+        setMessageType("success")
       } else {
-        alert("Check your email for the confirmation link!")
+        setMessage("Check your email for the confirmation link!")
+        setMessageType("success")
       }
     }
 
@@ -99,6 +105,7 @@ function AuthForm() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setMessage("")
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -106,7 +113,11 @@ function AuthForm() {
     })
 
     if (error) {
-      alert(error.message)
+      setMessage(error.message)
+      setMessageType("error")
+    } else {
+      setMessage("Successfully signed in!")
+      setMessageType("success")
     }
 
     setLoading(false)
@@ -114,6 +125,7 @@ function AuthForm() {
 
   const handleDemoLogin = async () => {
     setLoading(true)
+    setMessage("")
 
     const { error } = await supabase.auth.signInWithPassword({
       email: "demo@example.com",
@@ -121,7 +133,11 @@ function AuthForm() {
     })
 
     if (error && !isUsingMockData) {
-      alert(error.message)
+      setMessage(error.message)
+      setMessageType("error")
+    } else {
+      setMessage("Demo login successful!")
+      setMessageType("success")
     }
 
     setLoading(false)
@@ -152,6 +168,15 @@ function AuthForm() {
           )}
         </CardHeader>
         <CardContent>
+          {message && (
+            <div className={`mb-4 p-3 rounded-lg text-sm ${
+              messageType === "success" 
+                ? "bg-green-900/20 border border-green-500/30 text-green-200" 
+                : "bg-red-900/20 border border-red-500/30 text-red-200"
+            }`}>
+              {message}
+            </div>
+          )}
           {isUsingMockData && (
             <div className="mb-4">
               <Button

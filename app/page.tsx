@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { KanbanBoard } from "@/components/layout/kanban-board"
 import { useTaskStore } from "@/lib/store/task-store"
 import { AuthProvider } from "@/components/auth/auth-provider"
+import { AppHeader } from "@/components/layout/app-header"
 
 
 
@@ -41,15 +42,7 @@ export default function HomePage() {
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
 
         <div className="container mx-auto px-4 py-8 relative z-10">
-          <header className="mb-8 text-center relative">
-
-            <div className="animate-fade-in-up">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent mb-4">
-                Clean TODO App
-              </h1>
-              <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full"></div>
-            </div>
-          </header>
+          <AppHeader />
           <KanbanBoard />
         </div>
       </div>
