@@ -73,7 +73,7 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
 
   if (isDragging || isSortableDragging) {
     return (
-      <Card className="opacity-70 rotate-3 shadow-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-400/30 backdrop-blur-sm">
+      <Card className="opacity-80 rotate-2 shadow-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-400/50 backdrop-blur-sm scale-105">
         <CardContent className="p-3">
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm font-medium text-white flex-1">{task.title}</p>
@@ -89,7 +89,7 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
         ref={setNodeRef}
         style={style}
         className={cn(
-          "cursor-grab active:cursor-grabbing transition-all duration-200 ease-out hover:shadow-lg hover:shadow-purple-500/20 group backdrop-blur-sm border-white/20 hover:border-purple-400/50 transform hover:scale-[1.02] will-change-transform",
+          "cursor-grab active:cursor-grabbing transition-all duration-200 ease-out hover:shadow-lg hover:shadow-purple-500/20 group backdrop-blur-sm border-white/20 hover:border-purple-400/50 transform hover:scale-[1.02] will-change-transform relative",
           task.status === "past" && "bg-slate-700/40 border-slate-500/30",
           task.status === "present" && "bg-gradient-to-br from-purple-700/40 to-pink-700/40 border-purple-400/30",
           task.status === "future" && "bg-slate-700/40 border-slate-500/30",
@@ -97,6 +97,10 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
         {...attributes}
         {...listeners}
       >
+        {/* Drag handle indicator */}
+        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-50 transition-opacity duration-200 pointer-events-none z-20">
+          <div className="w-1 h-6 bg-slate-400 rounded-full"></div>
+        </div>
         <CardContent className="p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2 flex-1">
@@ -107,7 +111,7 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
                 onMouseDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
                 className={cn(
-                  "h-5 w-5 p-0 rounded border-2 transition-all duration-200 hover:bg-white/10 flex-shrink-0",
+                  "h-5 w-5 p-0 rounded border-2 transition-all duration-200 hover:bg-white/10 flex-shrink-0 z-10",
                   (task.completed || task.status === "past")
                     ? "bg-green-500 border-green-500 text-white" 
                     : "border-slate-400 text-transparent hover:border-green-400"
@@ -115,10 +119,10 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
               >
                 {(task.completed || task.status === "past") && <Check className="h-3 w-3" />}
               </Button>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <p
                   className={cn(
-                    "text-sm font-medium transition-all duration-300 select-none",
+                    "text-sm font-medium transition-all duration-300 select-none break-words",
                     (task.completed || task.status === "past") ? "text-slate-300 line-through" : "text-white",
                   )}
                 >
@@ -132,7 +136,7 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white/20 text-white flex-shrink-0"
+                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white/20 text-white flex-shrink-0 z-10"
                   onClick={(e) => e.stopPropagation()}
                   onMouseDown={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}

@@ -25,9 +25,9 @@ export function KanbanBoard() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Reduced for more responsive drag detection
-        tolerance: 3, // Reduced tolerance for better precision
-        delay: 100, // Small delay to prevent accidental drags
+        distance: 3, // Very small distance for immediate drag detection
+        tolerance: 2, // Very small tolerance for better precision
+        delay: 50, // Minimal delay for faster response
       },
     }),
     useSensor(KeyboardSensor),
