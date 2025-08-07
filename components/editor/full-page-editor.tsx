@@ -58,7 +58,8 @@ interface FullPageEditorProps {
 export function FullPageEditor({ task, isOpen, onClose, mode = "edit" }: FullPageEditorProps) {
   const [title, setTitle] = useState(task.title)
   const [isSaving, setIsSaving] = useState(false)
-  const { updateTaskDetails, addTask } = useTaskStore()
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const { updateTaskDetails, addTask, updateTask } = useTaskStore()
 
   const editor = useEditor({
     extensions: [
@@ -78,7 +79,13 @@ export function FullPageEditor({ task, isOpen, onClose, mode = "edit" }: FullPag
         nested: true,
       }),
       Placeholder.configure({
-        placeholder: "Type '/' for commands, or just start writing...",
+        placeholder: `Start typing to add details, create sub-tasks, or insert links...
+
+💡 Quick tips:
+• Type '[ ]' or '[]' for checkboxes (sub-tasks)
+• Press Ctrl+K (Cmd+K on Mac) to add links
+• Use '#' for headings and '>' for quotes
+• Create lists with '-' or '1.'`,
       }),
       Image.configure({
         HTMLAttributes: {
@@ -124,10 +131,36 @@ export function FullPageEditor({ task, isOpen, onClose, mode = "edit" }: FullPag
           await updateTaskDetails(newTaskId, content)
         }
       } else {
-        // Update existing task
-        await updateTaskDetails(task.id, content)
+        // Update existing task - save both title and content
+        const updates: any = {}
+        
+        // Update title if it changed
+        if (title !== task.title) {
+          updates.title = title
+        }
+        
+        // Always save content
+        updates.details = content
+        
+        // If there are updates, save them
+        if (Object.keys(updates).length > 0) {
+          if (updates.details && !updates.title) {
+            // Only details changed, use updateTaskDetails
+            await updateTaskDetails(task.id, content)
+          } else if (updates.title && !updates.details) {
+            // Only title changed, use updateTask
+            await updateTask(task.id, { title })
+          } else {
+            // Both changed, update details and title separately for proper handling
+            if (updates.title) {
+              await updateTask(task.id, { title })
+            }
+            await updateTaskDetails(task.id, content)
+          }
+        }
       }
       
+      setHasUnsavedChanges(false)
       onClose()
     } catch (error) {
       console.error("Error saving:", error)

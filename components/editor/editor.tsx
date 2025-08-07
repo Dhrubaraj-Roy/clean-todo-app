@@ -28,6 +28,9 @@ export function Editor({ initialContent, onUpdate, placeholder }: EditorProps) {
       TaskList,
       TaskItem.configure({
         nested: true,
+        HTMLAttributes: {
+          class: 'flex items-start gap-2 my-1',
+        },
       }),
       Placeholder.configure({
         placeholder: placeholder || "Start writing...",
@@ -36,7 +39,7 @@ export function Editor({ initialContent, onUpdate, placeholder }: EditorProps) {
     content: initialContent,
     editorProps: {
       attributes: {
-        class: "prose prose-sm max-w-none focus:outline-none min-h-[300px] p-4",
+        class: "prose prose-sm prose-invert max-w-none focus:outline-none min-h-[300px] p-4 text-white",
       },
     },
     onUpdate: ({ editor }) => {
@@ -64,7 +67,7 @@ export function Editor({ initialContent, onUpdate, placeholder }: EditorProps) {
   }
 
   return (
-    <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+    <div className="border border-slate-600/50 rounded-lg overflow-hidden bg-slate-800/50">
       <EditorToolbar editor={editor} />
       <div className="max-h-[400px] overflow-y-auto">
         <EditorContent editor={editor} />

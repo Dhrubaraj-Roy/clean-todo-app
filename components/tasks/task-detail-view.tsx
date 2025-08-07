@@ -95,7 +95,12 @@ export function TaskDetailView({ task, open, onClose }: TaskDetailViewProps) {
           <Editor
             initialContent={details}
             onUpdate={handleSaveDetails}
-            placeholder="Add more details, create sub-tasks, or include links..."
+            placeholder={`Add sub-tasks with checkboxes, insert links, or write detailed notes...
+
+📝 Tips:
+• Press Ctrl/Cmd + K to add links
+• Type [ ] for checkboxes or use the toolbar
+• Use bullet points and formatting for better organization`}
           />
         </div>
       </DialogContent>

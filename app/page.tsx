@@ -5,6 +5,7 @@ import { KanbanBoard } from "@/components/layout/kanban-board"
 import { useTaskStore } from "@/lib/store/task-store"
 import { AuthProvider } from "@/components/auth/auth-provider"
 import { AppHeader } from "@/components/layout/app-header"
+import { FloatingWidgets } from "@/components/ui/floating-widgets"
 
 
 
@@ -45,6 +46,9 @@ export default function HomePage() {
           <AppHeader />
           <KanbanBoard />
         </div>
+        
+        {/* Floating Widgets */}
+        <FloatingWidgets />
       </div>
     </AuthProvider>
   )

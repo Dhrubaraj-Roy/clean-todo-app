@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { MoreHorizontal, Calendar, Trash2, Edit, Copy, Check } from "lucide-react"
+import { MoreHorizontal, Calendar, Trash2, Edit, Copy, Check, CheckSquare, Link as LinkIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -15,9 +15,11 @@ import {
 import type { Task } from "@/lib/types"
 import { useTaskStore } from "@/lib/store/task-store"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { TaskDetailView } from "./task-detail-view"
 import { FullPageEditor } from "../editor/full-page-editor"
+import { SubtaskManager } from "./subtask-manager"
+import { analyzeTaskContent, getTaskContentSummary } from "@/lib/task-content-utils"
 
 interface TaskCardProps {
   task: Task
@@ -28,7 +30,10 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
   const { deleteTask, addTask, toggleTaskCompletion } = useTaskStore()
   const [showDetails, setShowDetails] = useState(false)
   const [showFullEditor, setShowFullEditor] = useState(false)
+  const [showSubtaskManager, setShowSubtaskManager] = useState(false)
   const [editorMode, setEditorMode] = useState<"edit" | "duplicate">("edit")
+  const [clickTimer, setClickTimer] = useState<NodeJS.Timeout | null>(null)
+  const [isTripleClick, setIsTripleClick] = useState(false)
 
   const {
     attributes,
@@ -39,12 +44,26 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
     isDragging: isSortableDragging,
   } = useSortable({
     id: task.id,
+    disabled: isTripleClick, // Disable sortable during triple-click
+    transition: {
+      duration: 150,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    },
   })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   }
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (clickTimer) {
+        clearTimeout(clickTimer)
+      }
+    }
+  }, [clickTimer])
 
   const handleDelete = async () => {
     if (confirm("Are you sure you want to delete this task?")) {
@@ -62,6 +81,22 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
     await toggleTaskCompletion(task.id)
   }
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Single click opens subtask manager immediately
+    setIsTripleClick(true)
+    e.preventDefault()
+    e.stopPropagation()
+    e.nativeEvent.stopImmediatePropagation()
+    
+    // Open subtask manager
+    setTimeout(() => {
+      setShowSubtaskManager(true)
+    }, 10)
+    
+    // Reset click flag after dialog operations are complete
+    setTimeout(() => setIsTripleClick(false), 500)
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -73,7 +108,7 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
 
   if (isDragging || isSortableDragging) {
     return (
-      <Card className="opacity-80 rotate-2 shadow-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-400/50 backdrop-blur-sm scale-105">
+      <Card className="opacity-90 rotate-1 shadow-2xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 border-purple-400/60 backdrop-blur-sm scale-105 transition-all duration-150 ease-out">
         <CardContent className="p-3">
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm font-medium text-white flex-1">{task.title}</p>
@@ -89,18 +124,37 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
         ref={setNodeRef}
         style={style}
         className={cn(
-          "cursor-grab active:cursor-grabbing transition-all duration-200 ease-out hover:shadow-lg hover:shadow-purple-500/20 group backdrop-blur-sm border-white/20 hover:border-purple-400/50 transform hover:scale-[1.02] will-change-transform relative",
+          "cursor-grab active:cursor-grabbing transition-all duration-150 ease-out hover:shadow-lg hover:shadow-purple-500/20 group backdrop-blur-sm border-white/20 hover:border-purple-400/50 transform hover:scale-[1.02] will-change-transform relative",
+          "focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2 focus:ring-offset-slate-900",
           task.status === "past" && "bg-slate-700/40 border-slate-500/30",
           task.status === "present" && "bg-gradient-to-br from-purple-700/40 to-pink-700/40 border-purple-400/30",
           task.status === "future" && "bg-slate-700/40 border-slate-500/30",
         )}
-        {...attributes}
-        {...listeners}
+        onClick={handleClick}
+        onMouseDown={(e) => {
+          // Prevent drag if it's a triple-click
+          if (e.detail === 3 || isTripleClick) {
+            e.preventDefault()
+            e.stopPropagation()
+            return false
+          }
+        }}
+        onPointerDown={(e) => {
+          // Also prevent pointer events for triple-clicks
+          if (e.detail === 3 || isTripleClick) {
+            e.preventDefault()
+            e.stopPropagation()
+            return false
+          }
+        }}
+        {...(isTripleClick ? {} : attributes)}
+        {...(isTripleClick ? {} : listeners)}
       >
-        {/* Drag handle indicator */}
-        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-50 transition-opacity duration-200 pointer-events-none z-20">
-          <div className="w-1 h-6 bg-slate-400 rounded-full"></div>
+        {/* Enhanced drag handle indicator */}
+        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-60 transition-all duration-200 pointer-events-none z-20">
+          <div className="w-1 h-6 bg-gradient-to-b from-purple-400 to-pink-400 rounded-full shadow-sm"></div>
         </div>
+        
         <CardContent className="p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2 flex-1">
@@ -112,6 +166,7 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
                 onTouchStart={(e) => e.stopPropagation()}
                 className={cn(
                   "h-5 w-5 p-0 rounded border-2 transition-all duration-200 hover:bg-white/10 flex-shrink-0 z-10",
+                  "focus:outline-none focus:ring-2 focus:ring-green-400/50",
                   (task.completed || task.status === "past")
                     ? "bg-green-500 border-green-500 text-white" 
                     : "border-slate-400 text-transparent hover:border-green-400"
@@ -122,12 +177,37 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
               <div className="flex-1 min-w-0">
                 <p
                   className={cn(
-                    "text-sm font-medium transition-all duration-300 select-none break-words",
+                    "text-sm font-medium transition-all duration-200 select-none break-words leading-relaxed",
                     (task.completed || task.status === "past") ? "text-slate-300 line-through" : "text-white",
                   )}
                 >
                   {task.title}
                 </p>
+                {/* Task content indicators */}
+                {task.details && (() => {
+                  const analysis = analyzeTaskContent(task.details)
+                  return (analysis.hasSubtasks || analysis.hasLinks) && (
+                    <div className="flex items-center gap-1 mt-1">
+                      {analysis.hasSubtasks && (
+                        <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-800/50 rounded-full px-2 py-0.5">
+                          <CheckSquare className="h-3 w-3" />
+                          <span>{analysis.subtaskCount}</span>
+                        </div>
+                      )}
+                      {analysis.hasLinks && (
+                        <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-800/50 rounded-full px-2 py-0.5">
+                          <LinkIcon className="h-3 w-3" />
+                          <span>{analysis.linkCount}</span>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
+                
+                {/* Single-click hint */}
+                <div className="opacity-0 group-hover:opacity-60 transition-opacity duration-300 mt-1">
+                  <p className="text-xs text-slate-500 italic">Click to add subtasks & links</p>
+                </div>
               </div>
             </div>
 
@@ -136,7 +216,7 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white/20 text-white flex-shrink-0 z-10"
+                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white/20 text-white flex-shrink-0 z-10"
                   onClick={(e) => e.stopPropagation()}
                   onMouseDown={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
@@ -145,13 +225,6 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-slate-800/90 backdrop-blur-xl border-slate-600/50">
-                <DropdownMenuItem onClick={() => {
-                  setEditorMode("edit")
-                  setShowFullEditor(true)
-                }} className="text-white hover:bg-white/10">
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Details
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleDuplicate} className="text-white hover:bg-white/10">
                   <Copy className="mr-2 h-4 w-4" />
                   Duplicate
@@ -181,6 +254,17 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
           isOpen={showFullEditor} 
           onClose={() => setShowFullEditor(false)}
           mode={editorMode}
+        />
+      )}
+      {showSubtaskManager && (
+        <SubtaskManager 
+          task={task}
+          open={showSubtaskManager}
+          onClose={() => {
+            setShowSubtaskManager(false)
+            // Reset triple-click flag when dialog closes
+            setIsTripleClick(false)
+          }}
         />
       )}
     </>

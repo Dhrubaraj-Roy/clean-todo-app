@@ -93,6 +93,78 @@
     animation-delay: 0.3s;
   }
 
+  .animation-delay-500 {
+    animation-delay: 0.5s;
+  }
+
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+
+  /* Enhanced drag and drop animations */
+  .animate-drag-lift {
+    animation: dragLift 0.15s ease-out forwards;
+  }
+
+  .animate-drop-bounce {
+    animation: dropBounce 0.3s ease-out forwards;
+  }
+
+  .animate-glow-pulse {
+    animation: glowPulse 1.5s ease-in-out infinite;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out forwards;
+  }
+
+  /* Clock and Calendar Widget Animations */
+  .animate-clock-glow {
+    animation: clockGlow 3s ease-in-out infinite;
+  }
+
+  .animate-calendar-bounce {
+    animation: calendarBounce 2s ease-in-out infinite;
+  }
+
+  .animate-widget-float {
+    animation: widgetFloat 4s ease-in-out infinite;
+  }
+
+  .animate-widget-slide-in {
+    animation: widgetSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* Smooth transitions for drag and drop */
+  .drag-transition {
+    transition: all 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .drag-transition-fast {
+    transition: all 0.1s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .drag-transition-slow {
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* Performance optimizations */
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  .will-change-opacity {
+    will-change: opacity;
+  }
+
+  .will-change-all {
+    will-change: transform, opacity;
+  }
+
   /* Editor Prose Styles */
   .prose-invert {
     color: #e2e8f0;
@@ -153,34 +225,36 @@
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .prose-invert ul[data-type="taskList"] li[data-type="taskItem"] {
+    align-items: flex-start;
   }
 
   .prose-invert ul[data-type="taskList"] li input[type="checkbox"] {
-    margin: 0.25rem 0 0 0;
+    margin: 0;
+    margin-top: 0.125rem;
+    flex-shrink: 0;
     width: 1rem;
     height: 1rem;
-    border-radius: 0.25rem;
-    border: 2px solid #64748b;
-    background: transparent;
     cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
   }
 
-  .prose-invert ul[data-type="taskList"] li input[type="checkbox"]:hover {
-    border-color: #10b981;
-    transform: scale(1.1);
+  .prose-invert ul[data-type="taskList"] li > div {
+    flex: 1;
+    min-width: 0;
   }
 
-  .prose-invert ul[data-type="taskList"] li input[type="checkbox"]:checked {
-    background: #10b981;
-    border-color: #10b981;
-    transform: scale(1.05);
+  /* Links styling */
+  .prose-invert a {
+    color: #60a5fa;
+    text-decoration: underline;
   }
 
-  .prose-invert ul[data-type="taskList"] li input[type="checkbox"]:focus {
-    outline: 2px solid #10b981;
-    outline-offset: 2px;
+  .prose-invert a:hover {
+    color: #93c5fd;
   }
 
   .prose-invert blockquote {
@@ -236,15 +310,6 @@
     border-radius: 0.5rem;
     margin: 1rem 0;
   }
-
-  .prose-invert a {
-    color: #60a5fa;
-    text-decoration: underline;
-  }
-
-  .prose-invert a:hover {
-    color: #93c5fd;
-  }
 }
 
 @keyframes blob {
@@ -282,6 +347,72 @@
   }
 }
 
+/* New drag and drop animations */
+@keyframes dragLift {
+  from {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  to {
+    transform: scale(1.05) rotate(1deg);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@keyframes dropBounce {
+  0% {
+    transform: scale(1.05) rotate(1deg);
+  }
+  50% {
+    transform: scale(0.98) rotate(0deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -299,4 +430,43 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.7);
+}
+
+/* Clock and Calendar Widget Keyframes */
+@keyframes clockGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(219, 39, 119, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.5), 0 0 60px rgba(219, 39, 119, 0.3);
+  }
+}
+
+@keyframes calendarBounce {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes widgetFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(1deg);
+  }
+}
+
+@keyframes widgetSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(50px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
