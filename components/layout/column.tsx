@@ -15,9 +15,10 @@ interface ColumnProps {
   className?: string
   showAddForm?: boolean
   isOver?: boolean
+  isMobile?: boolean
 }
 
-export function Column({ id, title, subtitle, tasks, className, showAddForm, isOver }: ColumnProps) {
+export function Column({ id, title, subtitle, tasks, className, showAddForm, isOver, isMobile }: ColumnProps) {
   const { setNodeRef, isOver: isDroppableOver } = useDroppable({
     id,
   })
@@ -40,18 +41,19 @@ export function Column({ id, title, subtitle, tasks, className, showAddForm, isO
       )}
     >
       <div className={cn(
-        "p-4 border-b border-white/10 transition-all duration-200",
+        "p-3 sm:p-4 border-b border-white/10 transition-all duration-200",
         isCurrentlyOver && "bg-purple-500/10 border-purple-400/30"
       )}>
-        <h2 className="text-lg font-semibold text-white mb-1">{title}</h2>
-        <p className="text-sm text-slate-300">{subtitle}</p>
+        <h2 className="text-base sm:text-lg font-semibold text-white mb-1">{title}</h2>
+        <p className="text-xs sm:text-sm text-slate-300">{subtitle}</p>
         <div className="mt-2 text-xs text-slate-400">
           {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
         </div>
       </div>
 
       <div className={cn(
-        "flex-1 p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-300px)] min-h-[400px] transition-all duration-200",
+        "flex-1 p-3 sm:p-4 space-y-2 sm:space-y-3 overflow-y-auto transition-all duration-200",
+        isMobile ? "max-h-[60vh] min-h-[200px]" : "max-h-[calc(100vh-300px)] min-h-[400px]",
         isCurrentlyOver && "bg-purple-500/5"
       )}>
         {showAddForm && <AddTaskForm status={id as Task["status"]} />}
@@ -73,11 +75,11 @@ export function Column({ id, title, subtitle, tasks, className, showAddForm, isO
 
         {tasks.length === 0 && !showAddForm && (
           <div className={cn(
-            "text-center py-8 text-slate-400 transition-all duration-200",
+            "text-center py-6 sm:py-8 text-slate-400 transition-all duration-200",
             isCurrentlyOver && "text-purple-300 scale-105"
           )}>
-            <p className="text-sm">No tasks yet</p>
-            <p className="text-xs mt-1">Drag tasks here</p>
+            <p className="text-xs sm:text-sm">No tasks yet</p>
+            <p className="text-xs mt-1">{isMobile ? "Add tasks above" : "Drag tasks here"}</p>
           </div>
         )}
       </div>

@@ -155,9 +155,9 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
           <div className="w-1 h-6 bg-gradient-to-b from-purple-400 to-pink-400 rounded-full shadow-sm"></div>
         </div>
         
-        <CardContent className="p-3">
+        <CardContent className="p-2 sm:p-3">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex items-start gap-2 flex-1">
+            <div className="flex items-start gap-2 flex-1 min-w-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -165,19 +165,19 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
                 onMouseDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
                 className={cn(
-                  "h-5 w-5 p-0 rounded border-2 transition-all duration-200 hover:bg-white/10 flex-shrink-0 z-10",
+                  "h-4 w-4 sm:h-5 sm:w-5 p-0 rounded border-2 transition-all duration-200 hover:bg-white/10 flex-shrink-0 z-10 touch-manipulation",
                   "focus:outline-none focus:ring-2 focus:ring-green-400/50",
                   (task.completed || task.status === "past")
                     ? "bg-green-500 border-green-500 text-white" 
                     : "border-slate-400 text-transparent hover:border-green-400"
                 )}
               >
-                {(task.completed || task.status === "past") && <Check className="h-3 w-3" />}
+                {(task.completed || task.status === "past") && <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
               </Button>
               <div className="flex-1 min-w-0">
                 <p
                   className={cn(
-                    "text-sm font-medium transition-all duration-200 select-none break-words leading-relaxed",
+                    "text-xs sm:text-sm font-medium transition-all duration-200 select-none break-words leading-relaxed",
                     (task.completed || task.status === "past") ? "text-slate-300 line-through" : "text-white",
                   )}
                 >
@@ -187,25 +187,25 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
                 {task.details && (() => {
                   const analysis = analyzeTaskContent(task.details)
                   return (analysis.hasSubtasks || analysis.hasLinks) && (
-                    <div className="flex items-center gap-1 mt-1">
+                    <div className="flex items-center gap-1 mt-1 flex-wrap">
                       {analysis.hasSubtasks && (
-                        <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-800/50 rounded-full px-2 py-0.5">
-                          <CheckSquare className="h-3 w-3" />
-                          <span>{analysis.subtaskCount}</span>
+                        <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-800/50 rounded-full px-1.5 sm:px-2 py-0.5">
+                          <CheckSquare className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                          <span className="text-xs">{analysis.subtaskCount}</span>
                         </div>
                       )}
                       {analysis.hasLinks && (
-                        <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-800/50 rounded-full px-2 py-0.5">
-                          <LinkIcon className="h-3 w-3" />
-                          <span>{analysis.linkCount}</span>
+                        <div className="flex items-center gap-1 text-xs text-slate-400 bg-slate-800/50 rounded-full px-1.5 sm:px-2 py-0.5">
+                          <LinkIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                          <span className="text-xs">{analysis.linkCount}</span>
                         </div>
                       )}
                     </div>
                   )
                 })()}
                 
-                {/* Single-click hint */}
-                <div className="opacity-0 group-hover:opacity-60 transition-opacity duration-300 mt-1">
+                {/* Single-click hint - Hidden on small screens to save space */}
+                <div className="hidden sm:block opacity-0 group-hover:opacity-60 transition-opacity duration-300 mt-1">
                   <p className="text-xs text-slate-500 italic">Click to add subtasks & links</p>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white/20 text-white flex-shrink-0 z-10"
+                  className="h-6 w-6 sm:h-6 sm:w-6 p-0 opacity-50 sm:opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white/20 text-white flex-shrink-0 z-10 touch-manipulation"
                   onClick={(e) => e.stopPropagation()}
                   onMouseDown={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
@@ -224,14 +224,14 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
                   <MoreHorizontal className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-slate-800/90 backdrop-blur-xl border-slate-600/50">
-                <DropdownMenuItem onClick={handleDuplicate} className="text-white hover:bg-white/10">
-                  <Copy className="mr-2 h-4 w-4" />
+              <DropdownMenuContent align="end" className="bg-slate-800/90 backdrop-blur-xl border-slate-600/50 min-w-[120px]">
+                <DropdownMenuItem onClick={handleDuplicate} className="text-white hover:bg-white/10 text-sm">
+                  <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Duplicate
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-slate-600/50" />
-                <DropdownMenuItem onClick={handleDelete} className="text-red-400 hover:bg-red-500/20">
-                  <Trash2 className="mr-2 h-4 w-4" />
+                <DropdownMenuItem onClick={handleDelete} className="text-red-400 hover:bg-red-500/20 text-sm">
+                  <Trash2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -239,9 +239,9 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
           </div>
 
           {task.completed_at && (
-            <div className="flex items-center gap-1 mt-2 text-xs text-slate-400 animate-fade-in">
-              <Calendar className="h-3 w-3" />
-              {formatDate(task.completed_at)}
+            <div className="flex items-center gap-1 mt-1 sm:mt-2 text-xs text-slate-400 animate-fade-in">
+              <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+              <span className="text-xs">{formatDate(task.completed_at)}</span>
             </div>
           )}
         </CardContent>

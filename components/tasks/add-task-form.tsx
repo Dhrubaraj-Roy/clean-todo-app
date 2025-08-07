@@ -33,21 +33,21 @@ export function AddTaskForm({ status = "present" }: AddTaskFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2 animate-fade-in">
-      <div className="flex gap-2">
+      <div className="flex gap-1 sm:gap-2">
         <Input
           placeholder={`Add a new ${status === "future" ? "future" : ""} task...`}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="flex-1 text-sm bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-purple-400 transition-all duration-300"
+          className="flex-1 text-xs sm:text-sm bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-purple-400 transition-all duration-300 py-2"
           disabled={isAdding}
         />
         <Button
           type="submit"
           size="sm"
           disabled={!title.trim() || isAdding}
-          className="px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 transition-all duration-300 transform hover:scale-105"
+          className="px-2 sm:px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 transition-all duration-300 transform hover:scale-105 touch-manipulation"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
       </div>
     </form>

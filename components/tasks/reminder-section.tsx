@@ -18,9 +18,10 @@ interface Reminder {
 
 interface ReminderSectionProps {
   className?: string
+  isMobile?: boolean
 }
 
-export function ReminderSection({ className }: ReminderSectionProps) {
+export function ReminderSection({ className, isMobile }: ReminderSectionProps) {
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
   const [newReminder, setNewReminder] = useState({ text: "", date: "", time: "09:00" })
@@ -110,49 +111,49 @@ export function ReminderSection({ className }: ReminderSectionProps) {
 
   return (
     <Card className={cn("bg-slate-800/40 border-slate-600/30 backdrop-blur-sm", className)}>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
+      <CardContent className={cn("p-3 sm:p-4", isMobile && "max-h-[40vh] overflow-y-auto")}>
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-yellow-400" />
-            <h3 className="text-sm font-medium text-white">Reminders</h3>
+            <Bell className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400" />
+            <h3 className="text-xs sm:text-sm font-medium text-white">Reminders</h3>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowAddForm(!showAddForm)}
-            className="h-6 w-6 p-0 text-slate-400 hover:text-white"
+            className="h-5 w-5 sm:h-6 sm:w-6 p-0 text-slate-400 hover:text-white touch-manipulation"
           >
-            <Plus className="h-3 w-3" />
+            <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           </Button>
         </div>
 
         {showAddForm && (
-          <div className="mb-3 p-3 bg-slate-700/40 rounded-lg border border-slate-600/30">
+          <div className="mb-2 sm:mb-3 p-2 sm:p-3 bg-slate-700/40 rounded-lg border border-slate-600/30">
             <Input
               placeholder="Reminder text..."
               value={newReminder.text}
               onChange={(e) => setNewReminder({ ...newReminder, text: e.target.value })}
-              className="mb-2 bg-slate-600/50 border-slate-500/50 text-white placeholder:text-slate-400"
+              className="mb-2 bg-slate-600/50 border-slate-500/50 text-white placeholder:text-slate-400 text-xs sm:text-sm"
             />
-            <div className="flex gap-2 mb-2">
+            <div className={cn("flex gap-2 mb-2", isMobile && "flex-col")}>
               <Input
                 type="date"
                 value={newReminder.date}
                 onChange={(e) => setNewReminder({ ...newReminder, date: e.target.value })}
-                className="flex-1 bg-slate-600/50 border-slate-500/50 text-white"
+                className="flex-1 bg-slate-600/50 border-slate-500/50 text-white text-xs sm:text-sm"
               />
               <Input
                 type="time"
                 value={newReminder.time}
                 onChange={(e) => setNewReminder({ ...newReminder, time: e.target.value })}
-                className="w-24 bg-slate-600/50 border-slate-500/50 text-white"
+                className={cn("bg-slate-600/50 border-slate-500/50 text-white text-xs sm:text-sm", isMobile ? "w-full" : "w-24")}
               />
             </div>
             <div className="flex gap-2">
               <Button
                 size="sm"
                 onClick={addReminder}
-                className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white"
+                className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs sm:text-sm"
               >
                 Add
               </Button>
@@ -160,7 +161,7 @@ export function ReminderSection({ className }: ReminderSectionProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAddForm(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-white text-xs sm:text-sm"
               >
                 Cancel
               </Button>
@@ -168,14 +169,14 @@ export function ReminderSection({ className }: ReminderSectionProps) {
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className={cn("space-y-1 sm:space-y-2", isMobile && "max-h-[20vh] overflow-y-auto")}>
           {reminders.map((reminder) => (
             <div
               key={reminder.id}
-              className="flex items-center justify-between p-2 bg-slate-700/30 rounded border border-slate-600/20 hover:bg-slate-700/50 transition-colors"
+              className="flex items-center justify-between p-1.5 sm:p-2 bg-slate-700/30 rounded border border-slate-600/20 hover:bg-slate-700/50 transition-colors"
             >
-              <div className="flex-1">
-                <p className="text-xs text-white font-medium">{reminder.text}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-white font-medium truncate">{reminder.text}</p>
                 <p className="text-xs text-slate-400">
                   {formatDate(reminder.date)} at {reminder.time}
                 </p>
@@ -184,16 +185,16 @@ export function ReminderSection({ className }: ReminderSectionProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => deleteReminder(reminder.id)}
-                className="h-5 w-5 p-0 text-slate-400 hover:text-red-400"
+                className="h-4 w-4 sm:h-5 sm:w-5 p-0 text-slate-400 hover:text-red-400 flex-shrink-0 ml-2 touch-manipulation"
               >
-                <X className="h-3 w-3" />
+                <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               </Button>
             </div>
           ))}
         </div>
 
         {reminders.length === 0 && !showAddForm && (
-          <div className="text-center py-4 text-slate-400">
+          <div className="text-center py-3 sm:py-4 text-slate-400">
             <p className="text-xs">No reminders set</p>
             <p className="text-xs mt-1">Click + to add one</p>
           </div>

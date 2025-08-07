@@ -110,7 +110,46 @@ export function KanbanBoard() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 h-[calc(100vh-200px)]">
+        {/* Mobile Layout - Stacked Columns */}
+        <div className="block lg:hidden space-y-4">
+          {/* Present Column - Always First on Mobile */}
+          <Column
+            id="present"
+            title="Present"
+            subtitle="Focus zone"
+            tasks={presentTasks}
+            className="bg-gradient-to-br from-purple-800/40 to-pink-800/40 border-purple-500/30 shadow-xl hover:shadow-purple-500/20 transition-all duration-300"
+            showAddForm
+            isMobile={true}
+          />
+          
+          {/* Future Column */}
+          <Column
+            id="future"
+            title="Future"
+            subtitle="Ideas & planning"
+            tasks={futureTasks}
+            className="bg-slate-800/40 border-slate-600/30 hover:bg-slate-800/50 transition-all duration-300"
+            showAddForm
+            isMobile={true}
+          />
+          
+          {/* Past Column */}
+          <Column
+            id="past"
+            title="Past"
+            subtitle="Completed tasks"
+            tasks={pastTasks}
+            className="bg-slate-800/40 border-slate-600/30 hover:bg-slate-800/50 transition-all duration-300"
+            isMobile={true}
+          />
+          
+          {/* Reminder Section for Mobile */}
+          <ReminderSection isMobile={true} />
+        </div>
+
+        {/* Desktop Layout - Grid */}
+        <div className="hidden lg:grid lg:grid-cols-5 gap-6 h-[calc(100vh-200px)]">
           <Column
             id="past"
             title="Past"
