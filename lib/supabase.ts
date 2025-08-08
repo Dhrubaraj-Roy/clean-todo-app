@@ -159,23 +159,19 @@ const createMockSupabaseClient = () => {
           return { data: { user: null }, error: { message: "Password must be at least 6 characters" } }
         }
 
-        const confirmationToken = `tok_${Math.random().toString(36).slice(2)}`
         const newUser = {
           id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           email,
           password, // NOTE: only for mock
           created_at: new Date().toISOString(),
           confirmed: false,
-          confirmation_token: confirmationToken,
         }
-
         const users = getStoredUsers()
         users.push(newUser)
         saveUsers(users)
 
-        // Do NOT set session yet; require confirmation first
-        // Return a token so UI can simulate clicking email link in demo
-        return { data: { user: { id: newUser.id, email: newUser.email }, confirmationToken }, error: null }
+        // In real Supabase, a confirmation email is sent now. Here we just store the unconfirmed user.
+        return { data: { user: { id: newUser.id, email: newUser.email } }, error: null }
       },
       signInWithPassword: async ({ email, password }: { email: string; password: string }) => {
         const user = findUserByEmail(email)

@@ -102,13 +102,16 @@ function AuthForm() {
 
     console.log("Attempting sign up with:", email)
 
-    // In real Supabase, this will send a confirmation email.
-    // In mock mode, we return a confirmationToken to simulate the flow.
-    const anyClient: any = supabase
-    const { data, error } = await anyClient.auth.signUp({
+    // Build redirect URL for real Supabase email confirmation
+    const redirectBase = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL
+
+    const { error } = await supabase.auth.signUp({
       email,
       password,
-    })
+      options: {
+        emailRedirectTo: redirectBase ? `${redirectBase}/` : undefined,
+      } as any,
+    } as any)
 
     if (error) {
       console.error("Sign up error:", error)
@@ -117,15 +120,8 @@ function AuthForm() {
     } else {
       console.log("Sign up successful")
       if (isUsingMockData) {
-        const token = data?.confirmationToken
-        setMessage(token
-          ? "Confirmation email sent (demo). Click 'Confirm email' to activate your account."
-          : "Account created! You can now use the app with your own data.")
+        setMessage("Account created! You can now use the app with your own data.")
         setMessageType("success")
-        // Store token temporarily to allow confirm button
-        if (token) {
-          ;(window as any).__CONFIRM_TOKEN__ = token
-        }
       } else {
         setMessage("Check your email for the confirmation link!")
         setMessageType("success")
@@ -158,25 +154,6 @@ function AuthForm() {
     }
 
     setLoading(false)
-  }
-
-  const handleConfirmEmail = async () => {
-    const token = (window as any).__CONFIRM_TOKEN__
-    if (!token) {
-      setMessage("No confirmation token found. Please sign up again.")
-      setMessageType("error")
-      return
-    }
-    const anyClient: any = supabase
-    const { error } = await anyClient.auth.confirmEmail(token)
-    if (error) {
-      setMessage(error.message)
-      setMessageType("error")
-    } else {
-      setMessage("Email confirmed! You can now sign in.")
-      setMessageType("success")
-      ;(window as any).__CONFIRM_TOKEN__ = undefined
-    }
   }
 
   const handleDemoLogin = async () => {
@@ -231,18 +208,6 @@ function AuthForm() {
                 : "bg-red-900/20 border border-red-500/30 text-red-200"
             }`}>
               {message}
-            </div>
-          )}
-          {isUsingMockData && (window as any).__CONFIRM_TOKEN__ && (
-            <div className="mb-3">
-              <Button
-                type="button"
-                onClick={handleConfirmEmail}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                disabled={loading}
-              >
-                Confirm email (demo)
-              </Button>
             </div>
           )}
           {isUsingMockData && (
