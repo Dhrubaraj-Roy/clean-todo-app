@@ -178,8 +178,15 @@ const createMockSupabaseClient = () => {
         if (!user || user.password !== password) {
           return { data: { user: null }, error: { message: "Invalid email or password" } }
         }
+        // In mock mode, don't block on confirmation. Auto-confirm any legacy users.
         if (!user.confirmed) {
-          return { data: { user: null }, error: { message: "Email not confirmed. Please confirm your email." } }
+          const users = getStoredUsers()
+          const idx = users.findIndex((u: any) => u.email === user.email)
+          if (idx !== -1) {
+            users[idx].confirmed = true
+            saveUsers(users)
+          }
+          user.confirmed = true
         }
 
         // Set as current session
