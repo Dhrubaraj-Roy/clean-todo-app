@@ -79,7 +79,6 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
   const handleToggleCompletion = async (e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
-    console.log("Checkbox clicked for task:", task.id)
     await toggleTaskCompletion(task.id)
   }
 

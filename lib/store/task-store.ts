@@ -22,18 +22,14 @@ export const useTaskStore = create<TaskState & TaskActions>((set, get) => ({
     set({ loading: true, error: null })
 
     try {
-      console.log("Fetching tasks...")
       const { data, error } = await supabase.from("tasks").select("*").order("position", { ascending: true })
 
       if (error) {
-        console.error("Error fetching tasks:", error)
         throw error
       }
 
-      console.log("Fetched tasks:", data)
       set({ tasks: data || [], loading: false })
     } catch (error) {
-      console.error("Exception fetching tasks:", error)
       set({ error: (error as Error).message, loading: false })
     }
   },
@@ -250,22 +246,16 @@ export const useTaskStore = create<TaskState & TaskActions>((set, get) => ({
   },
 
   toggleTaskCompletion: async (taskId: string) => {
-    console.log("Toggling task completion for:", taskId)
     const currentTasks = get().tasks
     const currentTask = currentTasks.find((t) => t.id === taskId)
     
     if (!currentTask) {
-      console.error("Task not found:", taskId)
       return
     }
-
-    console.log("Current task:", currentTask)
 
     // Determine new completion state based on current status
     const isCurrentlyCompleted = currentTask.completed || currentTask.status === "past"
     const newCompletedState = !isCurrentlyCompleted
-
-    console.log("Current completion state:", isCurrentlyCompleted, "New state:", newCompletedState)
 
     // Optimistic update
     const optimisticTask = {
@@ -287,8 +277,6 @@ export const useTaskStore = create<TaskState & TaskActions>((set, get) => ({
       const presentTasks = currentTasks.filter((t) => t.status === "present")
       optimisticTask.position = presentTasks.length > 0 ? Math.max(...presentTasks.map((t) => t.position)) + 1 : 1
     }
-
-    console.log("Optimistic task update:", optimisticTask)
 
     set((state) => ({
       tasks: state.tasks.map((task) => (task.id === taskId ? optimisticTask : task)),
@@ -314,8 +302,6 @@ export const useTaskStore = create<TaskState & TaskActions>((set, get) => ({
         updateData.position = presentTasks.length > 0 ? Math.max(...presentTasks.map((t) => t.position)) + 1 : 1
       }
 
-      console.log("Updating task with data:", updateData)
-
       const { data, error } = await supabase
         .from("tasks")
         .update(updateData)
@@ -324,11 +310,8 @@ export const useTaskStore = create<TaskState & TaskActions>((set, get) => ({
         .single()
 
       if (error) {
-        console.error("Error updating task:", error)
         throw error
       }
-
-      console.log("Task updated successfully:", data)
 
       set((state) => ({
         tasks: state.tasks.map((task) => (task.id === taskId ? data : task)),
@@ -339,7 +322,6 @@ export const useTaskStore = create<TaskState & TaskActions>((set, get) => ({
         soundManager.playTaskComplete()
       }
     } catch (error) {
-      console.error("Exception updating task:", error)
       // Revert optimistic update on error
       set((state) => ({
         tasks: state.tasks.map((task) => (task.id === taskId ? currentTask : task)),

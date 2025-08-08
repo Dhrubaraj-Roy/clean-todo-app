@@ -100,6 +100,23 @@ const createMockSupabaseClient = () => {
     authStateCallbacks.forEach(callback => callback(event, session))
   }
 
+  // Helper function to get stored users
+  const getStoredUsers = () => {
+    const usersJson = safeLocalStorage.getItem("celan-users") || "[]"
+    return JSON.parse(usersJson)
+  }
+
+  // Helper function to save users
+  const saveUsers = (users: any[]) => {
+    safeLocalStorage.setItem("celan-users", JSON.stringify(users))
+  }
+
+  // Helper function to find user by email
+  const findUserByEmail = (email: string) => {
+    const users = getStoredUsers()
+    return users.find((user: any) => user.email === email)
+  }
+
   return {
     auth: {
       getSession: async () => {
@@ -123,7 +140,46 @@ const createMockSupabaseClient = () => {
         }
       },
       signUp: async ({ email, password }: { email: string; password: string }) => {
-        const newUser = { ...MOCK_USER, email, id: `user-${Date.now()}` }
+        // Check if user already exists
+        const existingUser = findUserByEmail(email)
+        if (existingUser) {
+          return { 
+            data: { user: null }, 
+            error: { message: "User already exists with this email" } 
+          }
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email)) {
+          return { 
+            data: { user: null }, 
+            error: { message: "Invalid email format" } 
+          }
+        }
+
+        // Validate password (minimum 6 characters)
+        if (password.length < 6) {
+          return { 
+            data: { user: null }, 
+            error: { message: "Password must be at least 6 characters" } 
+          }
+        }
+
+        // Create new user
+        const newUser = { 
+          id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          email,
+          password, // In real app, this would be hashed
+          created_at: new Date().toISOString()
+        }
+
+        // Save user to storage
+        const users = getStoredUsers()
+        users.push(newUser)
+        saveUsers(users)
+
+        // Set as current user
         safeLocalStorage.setItem("celan-user", JSON.stringify(newUser))
         safeLocalStorage.setItem("celan-demo-mode", "false")
         safeLocalStorage.removeItem("celan-has-signed-out") // Clear sign out flag
@@ -136,7 +192,25 @@ const createMockSupabaseClient = () => {
         return { data: { user: newUser }, error: null }
       },
       signInWithPassword: async ({ email, password }: { email: string; password: string }) => {
-        const user = { ...MOCK_USER, email, id: `user-${Date.now()}` }
+        // Find user by email
+        const user = findUserByEmail(email)
+        
+        if (!user) {
+          return { 
+            data: { user: null }, 
+            error: { message: "Invalid email or password" } 
+          }
+        }
+
+        // Check password (in real app, this would be hashed comparison)
+        if (user.password !== password) {
+          return { 
+            data: { user: null }, 
+            error: { message: "Invalid email or password" } 
+          }
+        }
+
+        // Set as current user
         safeLocalStorage.setItem("celan-user", JSON.stringify(user))
         safeLocalStorage.setItem("celan-demo-mode", "false")
         safeLocalStorage.removeItem("celan-has-signed-out") // Clear sign out flag
@@ -183,8 +257,14 @@ const createMockSupabaseClient = () => {
       select: (columns = "*") => ({
         order: (column: string, options?: any) => {
           return Promise.resolve().then(() => {
-            const tasks = JSON.parse(safeLocalStorage.getItem("celan-tasks") || "[]")
-            const sortedTasks = tasks.sort((a: any, b: any) => {
+            const currentUser = JSON.parse(safeLocalStorage.getItem("celan-user") || "null")
+            const userId = currentUser?.id || MOCK_USER.id
+            const allTasks = JSON.parse(safeLocalStorage.getItem("celan-tasks") || "[]")
+            
+            // Filter tasks for current user
+            const userTasks = allTasks.filter((task: any) => task.user_id === userId)
+            
+            const sortedTasks = userTasks.sort((a: any, b: any) => {
               if (options?.ascending === false) {
                 return b[column] - a[column]
               }
@@ -198,18 +278,21 @@ const createMockSupabaseClient = () => {
         select: () => ({
           single: () => {
             return Promise.resolve().then(() => {
-              const tasks = JSON.parse(safeLocalStorage.getItem("celan-tasks") || "[]")
               const currentUser = JSON.parse(safeLocalStorage.getItem("celan-user") || "null")
+              const userId = currentUser?.id || MOCK_USER.id
+              const allTasks = JSON.parse(safeLocalStorage.getItem("celan-tasks") || "[]")
+              
               const newTask = {
                 ...data,
                 id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
-                user_id: currentUser?.id || MOCK_USER.id,
+                user_id: userId,
                 completed: data.completed || false,
               }
-              tasks.push(newTask)
-              safeLocalStorage.setItem("celan-tasks", JSON.stringify(tasks))
+              
+              allTasks.push(newTask)
+              safeLocalStorage.setItem("celan-tasks", JSON.stringify(allTasks))
               return { data: newTask, error: null }
             })
           },
@@ -220,22 +303,22 @@ const createMockSupabaseClient = () => {
           select: () => ({
             single: () => {
               return Promise.resolve().then(() => {
-                console.log("Mock update called with:", { column, value, data })
-                const tasks = JSON.parse(safeLocalStorage.getItem("celan-tasks") || "[]")
-                console.log("Current tasks in storage:", tasks)
-                const taskIndex = tasks.findIndex((t: any) => t[column] === value)
-                console.log("Task index found:", taskIndex)
+                const currentUser = JSON.parse(safeLocalStorage.getItem("celan-user") || "null")
+                const userId = currentUser?.id || MOCK_USER.id
+                const allTasks = JSON.parse(safeLocalStorage.getItem("celan-tasks") || "[]")
+                
+                // Find task by ID and ensure it belongs to current user
+                const taskIndex = allTasks.findIndex((t: any) => t[column] === value && t.user_id === userId)
+                
                 if (taskIndex !== -1) {
-                  tasks[taskIndex] = { 
-                    ...tasks[taskIndex], 
+                  allTasks[taskIndex] = { 
+                    ...allTasks[taskIndex], 
                     ...data, 
                     updated_at: new Date().toISOString() 
                   }
-                  console.log("Updated task:", tasks[taskIndex])
-                  safeLocalStorage.setItem("celan-tasks", JSON.stringify(tasks))
-                  return { data: tasks[taskIndex], error: null }
+                  safeLocalStorage.setItem("celan-tasks", JSON.stringify(allTasks))
+                  return { data: allTasks[taskIndex], error: null }
                 } else {
-                  console.error("Task not found for update")
                   return { data: null, error: { message: "Task not found" } }
                 }
               })
@@ -246,8 +329,12 @@ const createMockSupabaseClient = () => {
       delete: () => ({
         eq: (column: string, value: any) => {
           return Promise.resolve().then(() => {
-            const tasks = JSON.parse(safeLocalStorage.getItem("celan-tasks") || "[]")
-            const filteredTasks = tasks.filter((t: any) => t[column] !== value)
+            const currentUser = JSON.parse(safeLocalStorage.getItem("celan-user") || "null")
+            const userId = currentUser?.id || MOCK_USER.id
+            const allTasks = JSON.parse(safeLocalStorage.getItem("celan-tasks") || "[]")
+            
+            // Filter out the task to delete, ensuring it belongs to current user
+            const filteredTasks = allTasks.filter((t: any) => !(t[column] === value && t.user_id === userId))
             safeLocalStorage.setItem("celan-tasks", JSON.stringify(filteredTasks))
             return { error: null }
           })
