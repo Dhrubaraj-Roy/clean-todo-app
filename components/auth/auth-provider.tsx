@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session:", session)
       setUser(session?.user ?? null)
       setIsDemo(isDemoMode())
       setLoading(false)
@@ -38,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state change:", event, session)
       setUser(session?.user ?? null)
       setIsDemo(isDemoMode())
       setLoading(false)
@@ -84,15 +86,19 @@ function AuthForm() {
     setLoading(true)
     setMessage("")
 
+    console.log("Attempting sign up with:", email)
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
     })
 
     if (error) {
+      console.error("Sign up error:", error)
       setMessage(error.message)
       setMessageType("error")
     } else {
+      console.log("Sign up successful")
       if (isUsingMockData) {
         setMessage("Account created! You can now use the app with your own data.")
         setMessageType("success")
@@ -110,15 +116,19 @@ function AuthForm() {
     setLoading(true)
     setMessage("")
 
+    console.log("Attempting sign in with:", email)
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (error) {
+      console.error("Sign in error:", error)
       setMessage(error.message)
       setMessageType("error")
     } else {
+      console.log("Sign in successful")
       setMessage("Successfully signed in!")
       setMessageType("success")
     }

@@ -123,26 +123,30 @@ const createMockSupabaseClient = () => {
         const mockUser = JSON.parse(safeLocalStorage.getItem("celan-user") || "null")
         const isDemoMode = safeLocalStorage.getItem("celan-demo-mode") === "true"
         
+        // Return user if exists (either demo or real user)
         return {
           data: {
-            session: mockUser && isDemoMode ? { user: mockUser } : null,
+            session: mockUser ? { user: mockUser } : null,
           },
           error: null,
         }
       },
       getUser: async () => {
         const mockUser = JSON.parse(safeLocalStorage.getItem("celan-user") || "null")
-        const isDemoMode = safeLocalStorage.getItem("celan-demo-mode") === "true"
         
+        // Return user if exists (either demo or real user)
         return {
-          data: { user: mockUser && isDemoMode ? mockUser : null },
+          data: { user: mockUser || null },
           error: null,
         }
       },
       signUp: async ({ email, password }: { email: string; password: string }) => {
+        console.log("Mock signUp called with:", { email, password })
+        
         // Check if user already exists
         const existingUser = findUserByEmail(email)
         if (existingUser) {
+          console.log("User already exists:", existingUser)
           return { 
             data: { user: null }, 
             error: { message: "User already exists with this email" } 
@@ -152,6 +156,7 @@ const createMockSupabaseClient = () => {
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(email)) {
+          console.log("Invalid email format")
           return { 
             data: { user: null }, 
             error: { message: "Invalid email format" } 
@@ -160,6 +165,7 @@ const createMockSupabaseClient = () => {
 
         // Validate password (minimum 6 characters)
         if (password.length < 6) {
+          console.log("Password too short")
           return { 
             data: { user: null }, 
             error: { message: "Password must be at least 6 characters" } 
@@ -174,10 +180,13 @@ const createMockSupabaseClient = () => {
           created_at: new Date().toISOString()
         }
 
+        console.log("Creating new user:", newUser)
+
         // Save user to storage
         const users = getStoredUsers()
         users.push(newUser)
         saveUsers(users)
+        console.log("Saved users:", users)
 
         // Set as current user
         safeLocalStorage.setItem("celan-user", JSON.stringify(newUser))
@@ -186,16 +195,22 @@ const createMockSupabaseClient = () => {
         // Clear demo tasks when creating real account
         safeLocalStorage.removeItem("celan-tasks")
         
+        console.log("Set current user and cleared demo mode")
+        
         // Trigger auth state change
         triggerAuthStateChange("SIGNED_IN", { user: newUser })
         
         return { data: { user: newUser }, error: null }
       },
       signInWithPassword: async ({ email, password }: { email: string; password: string }) => {
+        console.log("Mock signInWithPassword called with:", { email, password })
+        
         // Find user by email
         const user = findUserByEmail(email)
+        console.log("Found user:", user)
         
         if (!user) {
+          console.log("User not found")
           return { 
             data: { user: null }, 
             error: { message: "Invalid email or password" } 
@@ -204,11 +219,14 @@ const createMockSupabaseClient = () => {
 
         // Check password (in real app, this would be hashed comparison)
         if (user.password !== password) {
+          console.log("Password mismatch")
           return { 
             data: { user: null }, 
             error: { message: "Invalid email or password" } 
           }
         }
+
+        console.log("Password correct, signing in user:", user)
 
         // Set as current user
         safeLocalStorage.setItem("celan-user", JSON.stringify(user))
@@ -216,6 +234,8 @@ const createMockSupabaseClient = () => {
         safeLocalStorage.removeItem("celan-has-signed-out") // Clear sign out flag
         // Clear demo tasks when signing in with real account
         safeLocalStorage.removeItem("celan-tasks")
+        
+        console.log("Set current user and cleared demo mode")
         
         // Trigger auth state change
         triggerAuthStateChange("SIGNED_IN", { user })
