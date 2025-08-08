@@ -9,7 +9,22 @@ export function AppHeader() {
   const { user, isDemo } = useAuth()
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      console.log("Sign out clicked, current user:", user)
+      console.log("Is demo mode:", isDemo)
+      
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error("Sign out error:", error)
+      } else {
+        console.log("Sign out successful")
+        // Force page reload to ensure clean state
+        window.location.reload()
+      }
+    } catch (err) {
+      console.error("Sign out exception:", err)
+    }
   }
 
   return (

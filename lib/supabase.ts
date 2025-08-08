@@ -90,6 +90,13 @@ const createMockSupabaseClient = () => {
     safeLocalStorage.setItem("celan-tasks", JSON.stringify(DEMO_TASKS))
   }
 
+  // Store auth state change callbacks
+  let authStateCallbacks: ((event: string, session: any) => void)[] = []
+
+  const triggerAuthStateChange = (event: string, session: any) => {
+    authStateCallbacks.forEach(callback => callback(event, session))
+  }
+
   return {
     auth: {
       getSession: async () => {
@@ -118,6 +125,10 @@ const createMockSupabaseClient = () => {
         safeLocalStorage.setItem("celan-demo-mode", "false")
         // Clear demo tasks when creating real account
         safeLocalStorage.removeItem("celan-tasks")
+        
+        // Trigger auth state change
+        triggerAuthStateChange("SIGNED_IN", { user: newUser })
+        
         return { data: { user: newUser }, error: null }
       },
       signInWithPassword: async ({ email, password }: { email: string; password: string }) => {
@@ -126,20 +137,35 @@ const createMockSupabaseClient = () => {
         safeLocalStorage.setItem("celan-demo-mode", "false")
         // Clear demo tasks when signing in with real account
         safeLocalStorage.removeItem("celan-tasks")
+        
+        // Trigger auth state change
+        triggerAuthStateChange("SIGNED_IN", { user })
+        
         return { data: { user }, error: null }
       },
       signOut: async () => {
+        // Clear all data
         safeLocalStorage.removeItem("celan-user")
         safeLocalStorage.removeItem("celan-demo-mode")
-        // Clear demo tasks when signing out
         safeLocalStorage.removeItem("celan-tasks")
+        
+        // Trigger auth state change
+        triggerAuthStateChange("SIGNED_OUT", null)
+        
         return { error: null }
       },
       onAuthStateChange: (callback: (event: string, session: any) => void) => {
+        authStateCallbacks.push(callback)
+        
         return {
           data: {
             subscription: {
-              unsubscribe: () => {},
+              unsubscribe: () => {
+                const index = authStateCallbacks.indexOf(callback)
+                if (index > -1) {
+                  authStateCallbacks.splice(index, 1)
+                }
+              },
             },
           },
         }
