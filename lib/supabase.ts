@@ -82,8 +82,11 @@ const safeLocalStorage = {
 
 // Mock Supabase client for development/preview
 const createMockSupabaseClient = () => {
-  // Initialize demo user if not exists and no real user is logged in
-  if (!safeLocalStorage.getItem("celan-user") && !safeLocalStorage.getItem("celan-demo-mode")) {
+  // Check if user has explicitly signed out (to prevent demo re-initialization)
+  const hasSignedOut = safeLocalStorage.getItem("celan-has-signed-out") === "true"
+  
+  // Initialize demo user if not exists, no real user is logged in, and user hasn't explicitly signed out
+  if (!safeLocalStorage.getItem("celan-user") && !safeLocalStorage.getItem("celan-demo-mode") && !hasSignedOut) {
     safeLocalStorage.setItem("celan-user", JSON.stringify(MOCK_USER))
     safeLocalStorage.setItem("celan-demo-mode", "true")
     // Initialize demo tasks
@@ -123,6 +126,7 @@ const createMockSupabaseClient = () => {
         const newUser = { ...MOCK_USER, email, id: `user-${Date.now()}` }
         safeLocalStorage.setItem("celan-user", JSON.stringify(newUser))
         safeLocalStorage.setItem("celan-demo-mode", "false")
+        safeLocalStorage.removeItem("celan-has-signed-out") // Clear sign out flag
         // Clear demo tasks when creating real account
         safeLocalStorage.removeItem("celan-tasks")
         
@@ -135,6 +139,7 @@ const createMockSupabaseClient = () => {
         const user = { ...MOCK_USER, email, id: `user-${Date.now()}` }
         safeLocalStorage.setItem("celan-user", JSON.stringify(user))
         safeLocalStorage.setItem("celan-demo-mode", "false")
+        safeLocalStorage.removeItem("celan-has-signed-out") // Clear sign out flag
         // Clear demo tasks when signing in with real account
         safeLocalStorage.removeItem("celan-tasks")
         
@@ -144,6 +149,9 @@ const createMockSupabaseClient = () => {
         return { data: { user }, error: null }
       },
       signOut: async () => {
+        // Set flag to prevent demo re-initialization
+        safeLocalStorage.setItem("celan-has-signed-out", "true")
+        
         // Clear all data
         safeLocalStorage.removeItem("celan-user")
         safeLocalStorage.removeItem("celan-demo-mode")

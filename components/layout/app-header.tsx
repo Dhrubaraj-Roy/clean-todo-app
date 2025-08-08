@@ -14,9 +14,6 @@ export function AppHeader() {
       
       if (error) {
         console.error("Sign out error:", error)
-      } else {
-        // Force page reload to ensure clean state
-        window.location.reload()
       }
     } catch (err) {
       console.error("Sign out exception:", err)
