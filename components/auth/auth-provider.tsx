@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { isUsingMockData } from "@/lib/supabase"
+import { isUsingMockData, isDemoMode } from "@/lib/supabase"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase"
@@ -14,20 +14,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 interface AuthContextType {
   user: User | null
   loading: boolean
+  isDemo: boolean
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true })
+const AuthContext = createContext<AuthContextType>({ user: null, loading: true, isDemo: false })
 
 export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isDemo, setIsDemo] = useState(false)
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
+      setIsDemo(isDemoMode())
       setLoading(false)
     })
 
@@ -36,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      setIsDemo(isDemoMode())
       setLoading(false)
     })
 
@@ -55,12 +59,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {isUsingMockData && (
+    <AuthContext.Provider value={{ user, loading, isDemo }}>
+      {isUsingMockData && isDemo && (
         <div className="bg-amber-900/20 border-b border-amber-500/30 px-4 py-2 text-center backdrop-blur-sm">
           <p className="text-sm text-amber-200">
-            <strong>Demo Mode:</strong> Using local storage. Set up Supabase environment variables for full
-            functionality.
+            <strong>Demo Mode:</strong> You're currently using the demo. Sign out to create your own account.
           </p>
         </div>
       )}
@@ -91,7 +94,7 @@ function AuthForm() {
       setMessageType("error")
     } else {
       if (isUsingMockData) {
-        setMessage("Demo account created! You can now use the app.")
+        setMessage("Account created! You can now use the app with your own data.")
         setMessageType("success")
       } else {
         setMessage("Check your email for the confirmation link!")
