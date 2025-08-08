@@ -125,15 +125,9 @@ function AuthForm() {
 
     console.log("Attempting sign up with:", email)
 
-    // Build redirect URL for real Supabase email confirmation
-    const redirectBase = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL
-
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: redirectBase ? `${redirectBase}/` : undefined,
-      } as any,
     } as any)
 
     if (error) {
