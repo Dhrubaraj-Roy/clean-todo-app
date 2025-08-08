@@ -88,7 +88,7 @@ function AuthForm() {
 
     console.log("Attempting sign up with:", email)
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     })
@@ -98,10 +98,13 @@ function AuthForm() {
       setMessage(error.message)
       setMessageType("error")
     } else {
-      console.log("Sign up successful")
+      console.log("Sign up successful, user data:", data)
       if (isUsingMockData) {
         setMessage("Account created! You can now use the app with your own data.")
         setMessageType("success")
+        // Clear form after successful sign up
+        setEmail("")
+        setPassword("")
       } else {
         setMessage("Check your email for the confirmation link!")
         setMessageType("success")
@@ -118,7 +121,7 @@ function AuthForm() {
 
     console.log("Attempting sign in with:", email)
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -128,9 +131,12 @@ function AuthForm() {
       setMessage(error.message)
       setMessageType("error")
     } else {
-      console.log("Sign in successful")
+      console.log("Sign in successful, user data:", data)
       setMessage("Successfully signed in!")
       setMessageType("success")
+      // Clear form after successful sign in
+      setEmail("")
+      setPassword("")
     }
 
     setLoading(false)
