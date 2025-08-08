@@ -220,17 +220,22 @@ const createMockSupabaseClient = () => {
           select: () => ({
             single: () => {
               return Promise.resolve().then(() => {
+                console.log("Mock update called with:", { column, value, data })
                 const tasks = JSON.parse(safeLocalStorage.getItem("celan-tasks") || "[]")
+                console.log("Current tasks in storage:", tasks)
                 const taskIndex = tasks.findIndex((t: any) => t[column] === value)
+                console.log("Task index found:", taskIndex)
                 if (taskIndex !== -1) {
                   tasks[taskIndex] = { 
                     ...tasks[taskIndex], 
                     ...data, 
                     updated_at: new Date().toISOString() 
                   }
+                  console.log("Updated task:", tasks[taskIndex])
                   safeLocalStorage.setItem("celan-tasks", JSON.stringify(tasks))
                   return { data: tasks[taskIndex], error: null }
                 } else {
+                  console.error("Task not found for update")
                   return { data: null, error: { message: "Task not found" } }
                 }
               })

@@ -78,10 +78,17 @@ export function TaskCard({ task, isDragging }: TaskCardProps) {
 
   const handleToggleCompletion = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    e.preventDefault()
+    console.log("Checkbox clicked for task:", task.id)
     await toggleTaskCompletion(task.id)
   }
 
   const handleClick = (e: React.MouseEvent) => {
+    // Don't handle clicks on the checkbox or dropdown
+    if ((e.target as HTMLElement).closest('button')) {
+      return
+    }
+    
     // Single click opens subtask manager immediately
     setIsTripleClick(true)
     e.preventDefault()
