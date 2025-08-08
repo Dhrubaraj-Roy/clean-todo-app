@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useTaskStore } from "@/lib/store/task-store"
 
 
 interface AuthContextType {
@@ -33,6 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null)
       setIsDemo(isDemoMode())
       setLoading(false)
+      // After first load, fetch tasks for the current auth state
+      const { fetchTasks } = useTaskStore.getState()
+      useTaskStore.setState({ tasks: [] })
+      if (session?.user) fetchTasks()
     })
 
     // Listen for auth changes
@@ -43,6 +48,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null)
       setIsDemo(isDemoMode())
       setLoading(false)
+
+      // Clear tasks and refetch for the new user context
+      const { fetchTasks } = useTaskStore.getState()
+      // Always clear current tasks to avoid showing previous user's data
+      useTaskStore.setState({ tasks: [] })
+      if (session?.user) {
+        // Small delay to ensure state is stable
+        setTimeout(() => fetchTasks(), 0)
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -88,7 +102,7 @@ function AuthForm() {
 
     console.log("Attempting sign up with:", email)
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
     })
@@ -98,13 +112,10 @@ function AuthForm() {
       setMessage(error.message)
       setMessageType("error")
     } else {
-      console.log("Sign up successful, user data:", data)
+      console.log("Sign up successful")
       if (isUsingMockData) {
         setMessage("Account created! You can now use the app with your own data.")
         setMessageType("success")
-        // Clear form after successful sign up
-        setEmail("")
-        setPassword("")
       } else {
         setMessage("Check your email for the confirmation link!")
         setMessageType("success")
@@ -121,7 +132,7 @@ function AuthForm() {
 
     console.log("Attempting sign in with:", email)
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -131,12 +142,9 @@ function AuthForm() {
       setMessage(error.message)
       setMessageType("error")
     } else {
-      console.log("Sign in successful, user data:", data)
+      console.log("Sign in successful")
       setMessage("Successfully signed in!")
       setMessageType("success")
-      // Clear form after successful sign in
-      setEmail("")
-      setPassword("")
     }
 
     setLoading(false)

@@ -103,23 +103,18 @@ const createMockSupabaseClient = () => {
   // Helper function to get stored users
   const getStoredUsers = () => {
     const usersJson = safeLocalStorage.getItem("celan-users") || "[]"
-    const users = JSON.parse(usersJson)
-    console.log("Retrieved stored users:", users)
-    return users
+    return JSON.parse(usersJson)
   }
 
   // Helper function to save users
   const saveUsers = (users: any[]) => {
-    console.log("Saving users:", users)
     safeLocalStorage.setItem("celan-users", JSON.stringify(users))
   }
 
   // Helper function to find user by email
   const findUserByEmail = (email: string) => {
     const users = getStoredUsers()
-    const foundUser = users.find((user: any) => user.email === email)
-    console.log("Finding user by email:", email, "Found:", foundUser)
-    return foundUser
+    return users.find((user: any) => user.email === email)
   }
 
   return {
@@ -127,8 +122,6 @@ const createMockSupabaseClient = () => {
       getSession: async () => {
         const mockUser = JSON.parse(safeLocalStorage.getItem("celan-user") || "null")
         const isDemoMode = safeLocalStorage.getItem("celan-demo-mode") === "true"
-        
-        console.log("getSession called - mockUser:", mockUser, "isDemoMode:", isDemoMode)
         
         // Return user if exists (either demo or real user)
         return {
@@ -140,8 +133,6 @@ const createMockSupabaseClient = () => {
       },
       getUser: async () => {
         const mockUser = JSON.parse(safeLocalStorage.getItem("celan-user") || "null")
-        
-        console.log("getUser called - mockUser:", mockUser)
         
         // Return user if exists (either demo or real user)
         return {
