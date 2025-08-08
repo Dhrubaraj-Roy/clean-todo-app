@@ -94,6 +94,13 @@ function AuthForm() {
   const [message, setMessage] = useState("")
   const [messageType, setMessageType] = useState<"success" | "error">("success")
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
+  const [resendCooldown, setResendCooldown] = useState<number>(0)
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const t = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000)
+    return () => clearInterval(t)
+  }, [resendCooldown])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -103,16 +110,18 @@ function AuthForm() {
   }, [])
 
   const handleResend = async () => {
-    if (!pendingEmail) return
+    if (!pendingEmail || resendCooldown > 0) return
     try {
       const anyClient: any = supabase
       if (!anyClient?.auth?.resend) {
         toast.error("Resend is unavailable in demo mode")
         return
       }
-      const { error } = await anyClient.auth.resend({ type: "signup", email: pendingEmail })
+      const redirectBase = typeof window !== 'undefined' ? window.location.origin : undefined
+      const { error } = await anyClient.auth.resend({ type: "signup", email: pendingEmail, options: { emailRedirectTo: redirectBase ? `${redirectBase}/` : undefined } })
       if (error) throw error
       toast.success("Confirmation email re-sent")
+      setResendCooldown(60)
     } catch (err: any) {
       toast.error(err?.message || "Unable to resend email")
     }
@@ -215,9 +224,11 @@ function AuthForm() {
 
       {/* Pending email notice (real Supabase) */}
       {!isUsingMockData && pendingEmail && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-blue-900/30 border border-blue-400/40 text-blue-100 px-4 py-2 rounded">
-          We sent a confirmation link to {pendingEmail}. Please confirm to finish creating your account.
-          <Button type="button" onClick={handleResend} className="ml-2 h-6 px-2 bg-blue-600 hover:bg-blue-700">Resend</Button>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-blue-900/30 border border-blue-400/40 text-blue-100 px-4 py-2 rounded flex items-center gap-2">
+          <span>We sent a confirmation link to {pendingEmail}. Please confirm to finish creating your account.</span>
+          <Button type="button" onClick={handleResend} disabled={resendCooldown>0} className="h-6 px-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
+            {resendCooldown>0 ? `Resend (${resendCooldown}s)` : 'Resend'}
+          </Button>
         </div>
       )}
 
