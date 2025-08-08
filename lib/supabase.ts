@@ -164,13 +164,13 @@ const createMockSupabaseClient = () => {
           email,
           password, // NOTE: only for mock
           created_at: new Date().toISOString(),
-          confirmed: false,
+          confirmed: true, // auto-confirm in mock mode
         }
         const users = getStoredUsers()
         users.push(newUser)
         saveUsers(users)
 
-        // In real Supabase, a confirmation email is sent now. Here we just store the unconfirmed user.
+        // In real Supabase, a confirmation email is sent now. Here we auto-confirm.
         return { data: { user: { id: newUser.id, email: newUser.email } }, error: null }
       },
       signInWithPassword: async ({ email, password }: { email: string; password: string }) => {

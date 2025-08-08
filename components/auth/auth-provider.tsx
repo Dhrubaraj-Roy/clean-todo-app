@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTaskStore } from "@/lib/store/task-store"
+import { toast } from "sonner"
 
 
 interface AuthContextType {
@@ -51,10 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Clear tasks and refetch for the new user context
       const { fetchTasks } = useTaskStore.getState()
-      // Always clear current tasks to avoid showing previous user's data
       useTaskStore.setState({ tasks: [] })
       if (session?.user) {
-        // Small delay to ensure state is stable
         setTimeout(() => fetchTasks(), 0)
       }
     })
@@ -94,6 +93,30 @@ function AuthForm() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
   const [messageType, setMessageType] = useState<"success" | "error">("success")
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const p = localStorage.getItem("celan-pending-email")
+      if (p) setPendingEmail(p)
+    }
+  }, [])
+
+  const handleResend = async () => {
+    if (!pendingEmail) return
+    try {
+      const anyClient: any = supabase
+      if (!anyClient?.auth?.resend) {
+        toast.error("Resend is unavailable in demo mode")
+        return
+      }
+      const { error } = await anyClient.auth.resend({ type: "signup", email: pendingEmail })
+      if (error) throw error
+      toast.success("Confirmation email re-sent")
+    } catch (err: any) {
+      toast.error(err?.message || "Unable to resend email")
+    }
+  }
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,14 +140,21 @@ function AuthForm() {
       console.error("Sign up error:", error)
       setMessage(error.message)
       setMessageType("error")
+      toast.error(error.message)
     } else {
       console.log("Sign up successful")
       if (isUsingMockData) {
         setMessage("Account created! You can now use the app with your own data.")
         setMessageType("success")
+        toast.success("Account created!")
       } else {
         setMessage("Check your email for the confirmation link!")
         setMessageType("success")
+        toast.success("We sent you a confirmation email. Please check your inbox.")
+        if (typeof window !== "undefined") {
+          localStorage.setItem("celan-pending-email", email)
+          setPendingEmail(email)
+        }
       }
     }
 
@@ -147,10 +177,16 @@ function AuthForm() {
       console.error("Sign in error:", error)
       setMessage(error.message)
       setMessageType("error")
+      toast.error(error.message)
     } else {
       console.log("Sign in successful")
       setMessage("Successfully signed in!")
       setMessageType("success")
+      toast.success("Signed in")
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("celan-pending-email")
+        setPendingEmail(null)
+      }
     }
 
     setLoading(false)
@@ -168,9 +204,11 @@ function AuthForm() {
     if (error && !isUsingMockData) {
       setMessage(error.message)
       setMessageType("error")
+      toast.error(error.message)
     } else {
       setMessage("Demo login successful!")
       setMessageType("success")
+      toast.success("Demo login successful")
     }
 
     setLoading(false)
@@ -181,7 +219,13 @@ function AuthForm() {
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzkyQUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
 
-
+      {/* Pending email notice (real Supabase) */}
+      {!isUsingMockData && pendingEmail && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-blue-900/30 border border-blue-400/40 text-blue-100 px-4 py-2 rounded">
+          We sent a confirmation link to {pendingEmail}. Please confirm to finish creating your account.
+          <Button type="button" onClick={handleResend} className="ml-2 h-6 px-2 bg-blue-600 hover:bg-blue-700">Resend</Button>
+        </div>
+      )}
 
       {/* Gradient Orbs */}
       <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
